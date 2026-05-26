@@ -6,7 +6,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1600
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        // gray-matter ships an eval() path for CoffeeScript/TOML engines which
+        // we never invoke — suppress this known false-positive until md-fusion
+        // v0.2.1 (which swaps gray-matter for js-yaml) lands on the registry.
+        if (
+          warning.code === 'EVAL' &&
+          warning.id?.includes('gray-matter')
+        ) return;
+        defaultHandler(warning);
+      }
+    }
   },
   plugins: [
     VitePWA({
